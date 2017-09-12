@@ -25,7 +25,7 @@ logging.basicConfig(
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/training_processor.log" % config.LOGS_DIR
+    filename="%s/trainingprocessor.log" % config.LOGS_DIR
 )
 
 
