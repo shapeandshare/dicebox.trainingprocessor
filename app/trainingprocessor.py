@@ -12,21 +12,31 @@ import errno
 import uuid
 import numpy
 import pika
-#import logging
-#import lib.dicebox_config as config
 from lib.network import Network
-#from datetime import datetime
 import json
 
 
+
+# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
+def make_sure_path_exists(path):
+    try:
+        if os.path.exists(path) is False:
+            os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
 # Setup logging.
+make_sure_path_exists(config.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/trainingprocessor.log" % config.LOGS_DIR
+    filename="%s/%s.trainingprocessor.log" % (config.LOGS_DIR, os.uname()[1])
 )
+
 
 
 url = config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
@@ -36,15 +46,6 @@ connection = pika.BlockingConnection(parameters=parameters)
 channel = connection.channel()
 
 channel.queue_declare(queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
-
-
-# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
-def make_sure_path_exists(path):
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
 
 
 def train_request():
@@ -119,9 +120,6 @@ def train_call(training_request_id):
     network.print_network()
 
     return None
-
-
-
 
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
