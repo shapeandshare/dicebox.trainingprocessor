@@ -117,8 +117,10 @@ def train_call(training_request_id):
 
     logging.info("network accuracy: %.2f%%" % (network.accuracy * 100))
     logging.info('-'*80)
-    network.print_network()
 
+    network.print_network()
+    logging.info(network.print_network())
+    logging.info('-' * 80)
     return None
 
 
