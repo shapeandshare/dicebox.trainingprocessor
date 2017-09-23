@@ -40,9 +40,9 @@ logging.basicConfig(
 
 
 url = config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
-logging.info('-'*80)
+logging.debug('-'*80)
 logging.debug("rabbitmq url: (%s)" % url)
-logging.info('-'*80)
+logging.debug('-'*80)
 
 parameters = pika.URLParameters(url)
 parameters.heartbeat = 0 # turn this off for now, the timeout otherwise
@@ -85,30 +85,30 @@ def train_request():
 
 
 def train_call(training_request_id):
-    logging.info('-' * 80)
+    logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
-    logging.info('-' * 80)
+    logging.debug('-' * 80)
     network = Network(config.NN_PARAM_CHOICES)
     if config.LOAD_BEST_WEIGHTS_ON_START is True:
-        logging.info('-' * 80)
-        logging.info('attempting to restart training from previous session..')
-        logging.info('-' * 80)
+        logging.debug('-' * 80)
+        logging.debug('attempting to restart training from previous session..')
+        logging.debug('-' * 80)
         network.create_lonestar(create_model=True,
                                 weights_filename="%s/%s" % (config.WEIGHTS_DIR, config.MODEL_WEIGHTS_FILENAME))
     else:
         network.create_lonestar(create_model=True)
 
-    logging.info('-' * 80)
+    logging.debug('-' * 80)
     logging.debug('loading category map')
-    logging.info('-' * 80)
+    logging.debug('-' * 80)
     with open('./category_map.json', 'w') as category_mapping_file:
         category_mapping_file.write(json.dumps(network.fsc.CATEGORY_MAP))
 
     i = 1
     while i <= config.EPOCHS:
-        logging.info('-' * 80)
-        logging.info("epoch (%i of %i)" % (i, config.EPOCHS))
-        logging.info('-' * 80)
+        logging.debug('-' * 80)
+        logging.debug("epoch (%i of %i)" % (i, config.EPOCHS))
+        logging.debug('-' * 80)
         network.train_and_save(config.DATASET)
 
         # save the model after every epoch, regardless of accuracy.
@@ -117,41 +117,41 @@ def train_call(training_request_id):
         #filename = "weights.epoch_%i.final.%s.hdf5" % (i, datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f'))
 
         #full_path = "%s%s" % (path, filename)
-        #logging.info("saving model weights after epoch %i to file %s" % (i, full_path))
+        #logging.debug("saving model weights after epoch %i to file %s" % (i, full_path))
         #network.save_model(filename)
 
         make_sure_path_exists(config.WEIGHTS_DIR)
-        logging.info('-' * 80)
+        logging.debug('-' * 80)
         full_path = "%s/%s.hdf5" % (config.WEIGHTS_DIR, training_request_id)
-        logging.info("saving model weights after epoch %i to file %s" % (i, full_path))
-        logging.info('-' * 80)
+        logging.debug("saving model weights after epoch %i to file %s" % (i, full_path))
+        logging.debug('-' * 80)
         network.save_model(full_path)
 
         # the next epoch..
         i += 1
 
-    logging.info('-' * 80)
-    logging.info("network accuracy: %.2f%%" % (network.accuracy * 100))
-    logging.info('-'*80)
+    logging.debug('-' * 80)
+    logging.debug("network accuracy: %.2f%%" % (network.accuracy * 100))
+    logging.debug('-'*80)
 
     network.print_network()
-    logging.info(network.print_network())
-    logging.info('-' * 80)
+    logging.debug(network.print_network())
+    logging.debug('-' * 80)
     return None
 
-logging.info('-'*80)
+logging.debug('-'*80)
 print(' [*] Waiting for messages. To exit press CTRL+C')
-logging.info('-'*80)
+logging.debug('-'*80)
 
 def callback(ch, method, properties, body):
-    logging.info('-' * 80)
-    logging.info(" [x] Received %r" % body)
-    logging.info('-' * 80)
+    logging.debug('-' * 80)
+    logging.debug(" [x] Received %r" % body)
+    logging.debug('-' * 80)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     train_call(json.loads(body)['training_request_id'])
-    logging.info('-' * 80)
-    logging.info(" [x] Done")
-    logging.info('-'*80)
+    logging.debug('-' * 80)
+    logging.debug(" [x] Done")
+    logging.debug('-'*80)
 
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(callback,
