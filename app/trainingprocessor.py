@@ -95,8 +95,17 @@ def train_call(training_request_id):
         logging.debug('-' * 80)
         network.create_lonestar(create_model=True,
                                 weights_filename="%s/%s" % (config.WEIGHTS_DIR, config.MODEL_WEIGHTS_FILENAME))
+        logging.debug('-' * 80)
+        logging.debug('Done')
+        logging.debug('-' * 80)
     else:
+        logging.debug('-' * 80)
+        logging.debug('creating model, but NOT loading previous weights.')
+        logging.debug('-' * 80)
         network.create_lonestar(create_model=True)
+        logging.debug('-' * 80)
+        logging.debug('Done')
+        logging.debug('-' * 80)
 
     logging.debug('-' * 80)
     logging.debug('loading category map')
