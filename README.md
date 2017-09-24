@@ -1,7 +1,9 @@
 # Training Processor
+
+A back-end service for picking up a training request, and performing the training.
+
 Overview
 --------
-A back-end service for picking up a training request, and performing the training.
 
 
 High Level Components
@@ -16,7 +18,7 @@ Production Deployment
 **Docker Container**
 
 The recommended way to run the service is by using the official provided docker container.
-The container should be deployed to a Docker Swarm as a service.
+The container should be deployed to a Docker Swarm as a service, or as a stand-alone container within a Docker Engine.
 
 **Example**
 ```
@@ -24,7 +26,14 @@ docker service create \
 --detach=false \
 --replicas 1 \
 --log-driver json-file \
---mount type=volume,volume-driver=local,source=dicebox,destination=/dicebox \
+--mount type=volume,volume-driver=cloudstor:aws,source=dicebox,destination=/dicebox \
+--env SENSORY_SERVER='sensory.yourdomain.com' \
+--env TRAINING_PROCESSOR_SERVICE_RABBITMQ_SERVER='rabbitmq.yourdomain.com' \
+--env TRAINING_PROCESSOR_SERVICE_RABBITMQ_USERNAME='USERNAME' \
+--env TRAINING_PROCESSOR_SERVICE_RABBITMQ_PASSWORD='PASSWORD' \
+--env API_ACCESS_KEY='YOUR_API_ACCESS_KEY' \
+--env LOAD_BEST_WEIGHTS_ON_START=True \
+--env MODEL_WEIGHTS_FILENAME='PREVIOUS_TRAINING_GUID.hdf5' \
 --name trainingprocessor shapeandshare/dicebox.trainingprocessor
 ```
 
