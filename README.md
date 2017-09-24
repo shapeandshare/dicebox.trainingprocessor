@@ -5,6 +5,8 @@ A back-end service for picking up a training request, and performing the trainin
 Overview
 --------
 
+The processor monitors a training request queue, once a request is picked up the service requests training and test data from the sensory service.  It fits the model and stores the weights off for later consumption.
+
 
 High Level Components
 ---------------------
@@ -17,10 +19,14 @@ Production Deployment
 
 **Docker Container**
 
-The recommended way to run the service is by using the official provided docker container.
+The recommended way to run the service is by using the official provided docker container.  The container is published to Docker Hub [here](https://hub.docker.com/r/shapeandshare/dicebox.trainingprocessor/).
+
 The container should be deployed to a Docker Swarm as a service, or as a stand-alone container within a Docker Engine.
 
+
+
 **Example**
+
 ```
 docker service create \
 --detach=false \
@@ -37,7 +43,9 @@ docker service create \
 --name trainingprocessor shapeandshare/dicebox.trainingprocessor
 ```
 
+
 How to apply rolling updates of the service within the swarm:
+
 ```
 docker service update --image shapeandshare/dicebox.trainingprocessor:latest trainingprocessor
 ```
@@ -54,7 +62,7 @@ docker volume create -d "cloudstor:aws" --opt backing=shared dicebox
 
 Contributing
 ------------
-1. Fork the repository on Github
+1. Fork the [repository](https://github.com/shapeandshare/dicebox.trainingprocessor) on Github
 2. Create a named feature branch (like `add_component_x`)
 3. Write your change
 4. Write tests for your change (if applicable)
