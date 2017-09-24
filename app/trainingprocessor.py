@@ -51,39 +51,6 @@ channel = connection.channel()
 
 channel.queue_declare(queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
 
-
-def train_request():
-    training_request_id = uuid.uuid4()
-
-    try:
-        ## Submit our message
-        url = config.TRAINING_SERVICE_RABBITMQ_URL
-        logging.debug(url)
-        parameters = pika.URLParameters(url)
-        connection = pika.BlockingConnection(parameters=parameters)
-
-        channel = connection.channel()
-
-        channel.queue_declare(queue=config.TRAINING_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
-
-        training_request = {}
-        training_request['training_request_id'] = str(training_request_id)
-        channel.basic_publish(exchange=config.TRAINING_SERVICE_RABBITMQ_EXCHANGE,
-                              routing_key=config.TRAINING_SERVICE_RABBITMQ_TRAINING_REQUEST_ROUTING_KEY,
-                              body=json.dumps(training_request),
-                              properties=pika.BasicProperties(
-                                  delivery_mode=2,  # make message persistent
-                              ))
-        logging.debug(" [x] Sent %r" % json.dumps(training_request))
-        connection.close()
-    except:
-        # something went wrong..
-        logging.error('we had a failure sending the request to the message system')
-        return None
-
-    return training_request_id
-
-
 def train_call(training_request_id):
     logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
@@ -119,15 +86,6 @@ def train_call(training_request_id):
         logging.debug("epoch (%i of %i)" % (i, config.EPOCHS))
         logging.debug('-' * 80)
         network.train_and_save(config.DATASET)
-
-        # save the model after every epoch, regardless of accuracy.
-        #path = "%s/%s/" % (config.WEIGHTS_DIR, training_request_id)
-        #make_sure_path_exists(path)
-        #filename = "weights.epoch_%i.final.%s.hdf5" % (i, datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f'))
-
-        #full_path = "%s%s" % (path, filename)
-        #logging.debug("saving model weights after epoch %i to file %s" % (i, full_path))
-        #network.save_model(filename)
 
         make_sure_path_exists(config.WEIGHTS_DIR)
         logging.debug('-' * 80)
