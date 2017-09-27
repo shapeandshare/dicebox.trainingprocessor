@@ -120,7 +120,7 @@ def callback(ch, method, properties, body):
     logging.debug(" [x] Done")
     logging.debug('-'*80)
 
-channel.basic_qos(prefetch_count=1)
+channel.basic_qos(prefetch_count=0)
 channel.basic_consume(callback,
                       queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE)
 
