@@ -102,3 +102,7 @@ ENV/
 
 # idea ide
 .idea
+
+venv/
+app/lib
+app/dicebox.config
