@@ -1,4 +1,14 @@
 #!flask/bin/python
+###############################################################################
+# Training Processor
+#
+# Copyright (c) 2017-2019 Joshua Burt
+###############################################################################
+
+
+###############################################################################
+# Dependencies
+###############################################################################
 import lib.docker_config as config
 from lib import sensory_interface
 from flask import Flask, jsonify, request, make_response, abort
@@ -16,8 +26,10 @@ from lib.network import Network
 import json
 
 
-
+###############################################################################
+# Allows for easy directory structure creation
 # https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
+###############################################################################
 def make_sure_path_exists(path):
     try:
         if os.path.exists(path) is False:
@@ -27,7 +39,9 @@ def make_sure_path_exists(path):
             raise
 
 
+###############################################################################
 # Setup logging.
+###############################################################################
 make_sure_path_exists(config.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -38,7 +52,9 @@ logging.basicConfig(
 )
 
 
-
+###############################################################################
+# Message System Configuration
+###############################################################################
 url = config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
 logging.debug('-'*80)
 logging.debug("rabbitmq url: (%s)" % url)
@@ -50,7 +66,12 @@ connection = pika.BlockingConnection(parameters=parameters)
 channel = connection.channel()
 
 channel.queue_declare(queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
+channel.basic_qos(prefetch_count=0)
 
+
+###############################################################################
+# Training Logic
+###############################################################################
 def train_call(training_request_id):
     logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
@@ -106,10 +127,10 @@ def train_call(training_request_id):
     logging.debug('-' * 80)
     return None
 
-logging.debug('-'*80)
-print(' [*] Waiting for messages. To exit press CTRL+C')
-logging.debug('-'*80)
 
+###############################################################################
+# Our callback when message consumption is ready to occur
+###############################################################################
 def callback(ch, method, properties, body):
     logging.debug('-' * 80)
     logging.debug(" [x] Received %r" % body)
@@ -120,8 +141,13 @@ def callback(ch, method, properties, body):
     logging.debug(" [x] Done")
     logging.debug('-'*80)
 
-channel.basic_qos(prefetch_count=0)
+
+###############################################################################
+# Main wait loop begins now ..
+###############################################################################
+logging.debug('-'*80)
+print(' [*] Waiting for messages. To exit press CTRL+C')
+logging.debug('-'*80)
 channel.basic_consume(callback,
                       queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE)
-
 channel.start_consuming()
