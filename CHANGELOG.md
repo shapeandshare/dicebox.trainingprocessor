@@ -9,3 +9,7 @@ Change Log
 * Updated copyright dates.
 * Added more exclusions to gitignore.
 * Code cleanup and comments added.
+
+03.10.2019
+----------
+* Updated dicebox.core libraries to address keras weights save/load unicode issue.
