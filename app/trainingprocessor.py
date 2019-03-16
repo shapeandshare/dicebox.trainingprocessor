@@ -51,6 +51,9 @@ logging.basicConfig(
     filename="%s/trainingprocessor.%s.log" % (config.LOGS_DIR, os.uname()[1])
 )
 
+# https://github.com/pika/pika/issues/692
+# reduce log level of pika
+logging.getLogger("pika").setLevel(logging.WARNING)
 
 ###############################################################################
 # Message System Configuration
