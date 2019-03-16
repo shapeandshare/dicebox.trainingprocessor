@@ -53,7 +53,7 @@ logging.basicConfig(
 
 # https://github.com/pika/pika/issues/692
 # reduce log level of pika
-logging.getLogger("pika").setLevel(logging.INFO)
+logging.getLogger("pika").setLevel(logging.WARNING)
 
 ###############################################################################
 # Message System Configuration
