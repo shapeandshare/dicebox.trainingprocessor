@@ -79,7 +79,7 @@ def train_call(training_request_id):
     logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
     logging.debug('-' * 80)
-    network = Network(config.NN_PARAM_CHOICES, create_fcs=False)
+    network = Network(config.NN_PARAM_CHOICES, True)
     if config.LOAD_BEST_WEIGHTS_ON_START is True:
         logging.debug('-' * 80)
         logging.debug('attempting to restart training from previous session..')
@@ -100,9 +100,9 @@ def train_call(training_request_id):
 
     if network.fsc is not None:
         logging.debug('-' * 80)
-        logging.debug('writing category map to %s for review.' % config.TMP_DIR)
+        logging.debug('writing category map to %s for later use with the weights.' % config.TMP_DIR)
         logging.debug('-' * 80)
-        with open('%s/category_map.json' % config.TMP_DIR, 'w') as category_mapping_file:
+        with open('%s/category_map.json' % config.WEIGHTS_DIR , 'w') as category_mapping_file:
             category_mapping_file.write(json.dumps(network.fsc.CATEGORY_MAP))
 
     i = 1
