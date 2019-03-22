@@ -17,3 +17,8 @@ Change Log
 03.21.2019
 ----------
 * Don't create a Network File System Connector, we don't have a file system, and not need one, or the categories to be stored to disk.
+
+03.22.2019
+----------
+* Updated Core Libraries
+* Moved category map save location from tmp to weights. (if enabled)
