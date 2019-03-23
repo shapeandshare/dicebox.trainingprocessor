@@ -114,7 +114,7 @@ def train_call(training_request_id):
 
         make_sure_path_exists(config.WEIGHTS_DIR)
         logging.debug('-' * 80)
-        full_path = "%s/%s.hdf5" % (config.WEIGHTS_DIR, training_request_id)
+        full_path = "%s/%s.%.2f.hdf5" % (config.WEIGHTS_DIR, training_request_id, (network.accuracy * 100))
         logging.debug("saving model weights after epoch %i to file %s" % (i, full_path))
         logging.debug('-' * 80)
         network.save_model(full_path)
