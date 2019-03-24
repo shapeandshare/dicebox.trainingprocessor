@@ -22,3 +22,8 @@ Change Log
 ----------
 * Updated Core Libraries
 * Moved category map save location from tmp to weights. (if enabled)
+
+03.23.2019
+----------
+* Updated Core Libraries to address file descriptor leak when polling for queue consumption
+* additional gitignore entries added for dev.
