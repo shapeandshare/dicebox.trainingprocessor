@@ -27,3 +27,7 @@ Change Log
 ----------
 * Updated Core Libraries to address file descriptor leak when polling for queue consumption
 * additional gitignore entries added for dev.
+
+03.30.2019
+----------
+* Updated core libraries and refactored to support the changes

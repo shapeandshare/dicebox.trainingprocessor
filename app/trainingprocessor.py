@@ -9,8 +9,7 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-import lib.docker_config as config
-from lib import sensory_interface
+
 from flask import Flask, jsonify, request, make_response, abort
 from flask_cors import CORS, cross_origin
 import base64
@@ -22,8 +21,14 @@ import errno
 import uuid
 import numpy
 import pika
-from lib.network import Network
 import json
+import dicebox.docker_config
+import dicebox.sensory_interface
+import dicebox.network
+
+# Config
+config_file = './dicebox.config'
+CONFIG = dicebox.docker_config.DockerConfig(config_file)
 
 
 ###############################################################################
@@ -42,13 +47,13 @@ def make_sure_path_exists(path):
 ###############################################################################
 # Setup logging.
 ###############################################################################
-make_sure_path_exists(config.LOGS_DIR)
+make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/trainingprocessor.%s.log" % (config.LOGS_DIR, os.uname()[1])
+    filename="%s/trainingprocessor.%s.log" % (CONFIG.LOGS_DIR, os.uname()[1])
 )
 
 # https://github.com/pika/pika/issues/692
@@ -58,7 +63,7 @@ logging.getLogger("pika").setLevel(logging.WARNING)
 ###############################################################################
 # Message System Configuration
 ###############################################################################
-url = config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
+url = CONFIG.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
 logging.debug('-'*80)
 logging.debug("rabbitmq url: (%s)" % url)
 logging.debug('-'*80)
@@ -68,7 +73,7 @@ parameters.heartbeat = 0 # turn this off for now, the timeout otherwise
 connection = pika.BlockingConnection(parameters=parameters)
 channel = connection.channel()
 
-channel.queue_declare(queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
+channel.queue_declare(queue=CONFIG.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE, durable=True)
 channel.basic_qos(prefetch_count=0)
 
 
@@ -79,13 +84,13 @@ def train_call(training_request_id):
     logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
     logging.debug('-' * 80)
-    network = Network(config.NN_PARAM_CHOICES, True)
-    if config.LOAD_BEST_WEIGHTS_ON_START is True:
+    network = dicebox.network.Network(CONFIG.NN_PARAM_CHOICES, True)
+    if CONFIG.LOAD_BEST_WEIGHTS_ON_START is True:
         logging.debug('-' * 80)
         logging.debug('attempting to restart training from previous session..')
         logging.debug('-' * 80)
         network.create_lonestar(create_model=True,
-                                weights_filename="%s/%s" % (config.WEIGHTS_DIR, config.MODEL_WEIGHTS_FILENAME))
+                                weights_filename="%s/%s" % (CONFIG.WEIGHTS_DIR, CONFIG.MODEL_WEIGHTS_FILENAME))
         logging.debug('-' * 80)
         logging.debug('Done')
         logging.debug('-' * 80)
@@ -100,21 +105,21 @@ def train_call(training_request_id):
 
     if network.fsc is not None:
         logging.debug('-' * 80)
-        logging.debug('writing category map to %s for later use with the weights.' % config.TMP_DIR)
+        logging.debug('writing category map to %s for later use with the weights.', CONFIG.TMP_DIR)
         logging.debug('-' * 80)
-        with open('%s/category_map.json' % config.WEIGHTS_DIR , 'w') as category_mapping_file:
+        with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR , 'w') as category_mapping_file:
             category_mapping_file.write(json.dumps(network.fsc.CATEGORY_MAP))
 
     i = 1
-    while i <= config.EPOCHS:
+    while i <= CONFIG.EPOCHS:
         logging.debug('-' * 80)
-        logging.debug("epoch (%i of %i)" % (i, config.EPOCHS))
+        logging.debug("epoch (%i of %i)" % (i, CONFIG.EPOCHS))
         logging.debug('-' * 80)
-        network.train_and_save(config.DATASET)
+        network.train_and_save(CONFIG.DATASET)
 
-        make_sure_path_exists(config.WEIGHTS_DIR)
+        make_sure_path_exists(CONFIG.WEIGHTS_DIR)
         logging.debug('-' * 80)
-        full_path = "%s/%s.%.2f.hdf5" % (config.WEIGHTS_DIR, training_request_id, (network.accuracy * 100))
+        full_path = "%s/%s.%.2f.hdf5" % (CONFIG.WEIGHTS_DIR, training_request_id, (network.accuracy * 100))
         logging.debug("saving model weights after epoch %i to file %s" % (i, full_path))
         logging.debug('-' * 80)
         network.save_model(full_path)
@@ -153,5 +158,5 @@ logging.debug('-'*80)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 logging.debug('-'*80)
 channel.basic_consume(callback,
-                      queue=config.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE)
+                      queue=CONFIG.TRAINING_PROCESSOR_SERVICE_RABBITMQ_TRAIN_REQUEST_TASK_QUEUE)
 channel.start_consuming()
