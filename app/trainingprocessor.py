@@ -9,26 +9,17 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-
-from flask import Flask, jsonify, request, make_response, abort
-from flask_cors import CORS, cross_origin
-import base64
 import logging
-import json
-from datetime import datetime
 import os
 import errno
-import uuid
-import numpy
 import pika
 import json
-import dicebox.docker_config
-import dicebox.sensory_interface
-import dicebox.network
+from dicebox.config.dicebox_config import DiceboxConfig
+from dicebox.dicebox_network import DiceboxNetwork
 
 # Config
 config_file = './dicebox.config'
-CONFIG = dicebox.docker_config.DockerConfig(config_file)
+CONFIG = DiceboxConfig(config_file)
 
 
 ###############################################################################
@@ -65,11 +56,11 @@ logging.getLogger("pika").setLevel(logging.WARNING)
 ###############################################################################
 url = CONFIG.TRAINING_PROCESSOR_SERVICE_RABBITMQ_URL
 logging.debug('-'*80)
-logging.debug("rabbitmq url: (%s)" % url)
+logging.debug("rabbitmq url: (%s)", url)
 logging.debug('-'*80)
 
 parameters = pika.URLParameters(url)
-parameters.heartbeat = 0 # turn this off for now, the timeout otherwise
+parameters.heartbeat = 0  # turn this off for now, the timeout otherwise
 connection = pika.BlockingConnection(parameters=parameters)
 channel = connection.channel()
 
@@ -84,7 +75,7 @@ def train_call(training_request_id):
     logging.debug('-' * 80)
     logging.debug("processing training request id: (%s)" % training_request_id)
     logging.debug('-' * 80)
-    network = dicebox.network.Network(CONFIG.NN_PARAM_CHOICES, True)
+    network = DiceboxNetwork(CONFIG.NN_PARAM_CHOICES, True)
     if CONFIG.LOAD_BEST_WEIGHTS_ON_START is True:
         logging.debug('-' * 80)
         logging.debug('attempting to restart training from previous session..')
@@ -108,7 +99,7 @@ def train_call(training_request_id):
         logging.debug('writing category map to %s for later use with the weights.', CONFIG.TMP_DIR)
         logging.debug('-' * 80)
         with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR , 'w') as category_mapping_file:
-            category_mapping_file.write(json.dumps(network.fsc.CATEGORY_MAP))
+            category_mapping_file.write(json.dumps(network.fsc.category_map))
 
     i = 1
     while i <= CONFIG.EPOCHS:

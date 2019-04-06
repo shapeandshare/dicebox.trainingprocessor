@@ -35,3 +35,7 @@ Change Log
 03.31.2019
 ----------
 * Disabled code which cached data to disk for the training processor until the code to pull from cache is also completed.
+
+04.06.2019
+----------
+* Refactored to support changes in the core libraries namespace.
